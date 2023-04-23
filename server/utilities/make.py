@@ -13,10 +13,14 @@ def makeTree(path):
             tree.append({i: makeTree(path+"/"+i)})
     return tree
 
+def makeList(tree, path):
+    l = []
+    for i in tree:
+        if type(i) == dict:
+            l += makeList(i[list(i.keys())[0]], path+"/"+list(i.keys())[0])
+        else:
+            l.append(path+"/"+i)
+    return l
+
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python makeTree.py <path>")
-        sys.exit(1)
-    path = sys.argv[1]
-    tree = makeTree(path)
-    print(json.dumps(tree, indent=4))
+    print(json.dumps(makeList(makeTree("."), "."), indent=4))
