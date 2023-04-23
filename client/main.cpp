@@ -2,6 +2,7 @@
 #include<cpr/cpr.h>
 #include<nlohmann/json.hpp>
 #include<string>
+#include<filesystem>
 
 using json  = nlohmann::json;
 using namespace std;
@@ -16,15 +17,14 @@ json writeArrayToJson(int arr[], int n) {
 }
 
 string URL(string route) {
-    string url = "https://localhost:8080/";
-    string url = url + route;
-    return url;
+    string url = "https://localhost:8000/";
+    return url + route;
 }
 
 //function to send the json to the server
 json sendJson(json j, string folderID) {
     json data;
-    data['data'] = j;
+    data["data"] = j;
     string url = URL("items/");
     cpr::Response r = cpr::Post(cpr::Url{url},
                                 cpr::Body{data.dump()},
@@ -33,3 +33,30 @@ json sendJson(json j, string folderID) {
     return json::parse(r.text);
 }
 
+json listDir(string path) {
+    json files;
+    // get current working directory
+    cout << filesystem::current_path() << endl;
+
+    for (const auto & entry : filesystem::directory_iterator(path)) {
+        if (!filesystem::is_directory(entry.path())) {
+            files.push_back(entry.path());
+        } else {
+            json sub = listDir(entry.path());
+            // convert json sub to array
+            
+        }
+    }
+    return files;
+}
+
+void loop() {}
+
+int main() {
+    string path = "./syncingFolder";
+    json files = listDir(path);
+    // json j = sendJson(files, "1");
+    cout << files.dump(4) << endl;
+    return 0;
+
+}

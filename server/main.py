@@ -6,6 +6,9 @@ from utilities import make
 class Item(BaseModel):
     data: list
 
+class Upload(BaseModel):
+    location: str
+
 def compare(client: list, local: list) -> dict:
     upload = []
     download = []
@@ -29,8 +32,9 @@ def items(item: Item):
     client = item.data
     return compare(client, local)
 
-@app.post("/upload/{location}")
-def fileUpload(file: UploadFile, location: str):
+@app.post("/upload")
+def fileUpload(file: UploadFile, location: Upload):
+    print(location.location)
     with open(location, "wb") as buffer:
         buffer.write(file.file.read())
     return {"status": "OK"}
