@@ -1,6 +1,8 @@
 # read the string from the arg and save it to string
 string=$1
 url=$2
+echo $url
+echo $string
 # curl -X 'POST' \
 #     'http://localhost:8000/upload' \
 #     -H 'accept: application/json' \
@@ -10,7 +12,7 @@ url=$2
 
 # building the above command with the string
 curl -X 'POST' \
-    "$2" \
+    "$url" \
     -H 'accept: application/json' \
     -H 'Content-Type: multipart/form-data' \
     -F "location=$string" \

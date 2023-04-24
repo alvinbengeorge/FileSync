@@ -41,8 +41,8 @@ def items(item: Item):
 
 @app.post("/upload/{location}")
 def fileUpload(location, file: Annotated[UploadFile, File()]):
-    print(location)
-    location = location.replace("*", "/")
+    print(location, type(location))
+    location = location.replace(",", "/")
     with open(location, "wb") as buffer:
         buffer.write(file.file.read())
     return {"status": "success"}

@@ -71,15 +71,16 @@ void download(string location) {
 
 void upload(string location) {
     // replacing / with * to avoid problems with the url
+    string trueLocation = location;
     for (int i = 0; i < location.length(); i++) {
         if (location[i] == '/') {
-            location[i] = '*';
+            location[i] = ',';
         }
     }
     
     string url = URL("upload/")+location;
-    cout << url << location;
-    string command = "sh upload.sh "+location+" "+url;
+    cout << url << endl;
+    string command = "sh upload.sh "+trueLocation+" "+url;
     system(command.c_str());
 }
 
