@@ -5,6 +5,7 @@
 #include<filesystem>
 #include<sys/stat.h>
 #include<stdio.h>
+#include<unistd.h>
 
 using json  = nlohmann::json;
 using namespace std;
@@ -19,7 +20,6 @@ string URL(string route) {
 string sendJson(json j) {
     json data;
     data["data"] = j;
-    cout << data.dump() << endl;
     string url = URL("items/");
     cpr::Response r = cpr::Post(cpr::Url{url},
                                 cpr::Body{data.dump()},
@@ -59,6 +59,7 @@ json listDir(string path) {
 }
 
 void download(string location) {
+    cout << "Downloaded: " << location << endl;
     string url = URL("download/");
     json data = json{{"path", location}};
     cpr::Response r = cpr::Post(cpr::Url{url},
@@ -70,7 +71,7 @@ void download(string location) {
 }
 
 void upload(string location) {
-    // replacing / with * to avoid problems with the url
+    cout << "Uploading: " << location << endl;
     string trueLocation = location;
     for (int i = 0; i < location.length(); i++) {
         if (location[i] == '/') {
@@ -79,12 +80,27 @@ void upload(string location) {
     }
     
     string url = URL("upload/")+location;
-    cout << url << endl;
     string command = "sh upload.sh "+trueLocation+" "+url;
     system(command.c_str());
 }
 
 int loop() {
+    sleep(3);
+    json files = listDir("./syncingFolder");
+    // cout << files <<endl;
+    string response = sendJson(files);
+    // cout << response << endl;
+    json data = json::parse(response);
+
+    // convert json data to array
+    for (auto & i : data["download"]) {
+        download(i.get<string>());
+    }
+    for (auto & i : data["upload"]) {
+        upload(i.get<string>());
+    }
+
+
     return 1;
 }
 

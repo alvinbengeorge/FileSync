@@ -25,6 +25,7 @@ def compare(client: list, local: list) -> dict:
     for i in localPaths:
         if i not in clientPaths:
             download.append(i)
+    print({"upload": upload, "download": download})
     return {"upload": upload, "download": download}
 
 app = FastAPI()
