@@ -11,6 +11,8 @@ class Item(BaseModel):
 class Download(BaseModel):
     path: str
 
+class Location(BaseModel):
+    path: str
 
 def compare(client: list, local: list) -> dict:
     upload = []
@@ -31,13 +33,13 @@ def read_root():
 
 @app.post("/items/")
 def items(item: Item): 
-    local = make.makeList(make.makeTree("./syncingFolder"), "./syncingFolder")
+    local = make.writeTime(make.makeList(make.makeTree("./syncingFolder"), "./syncingFolder"))
     client = item.data
     return compare(client, local)
 
 @app.post("/upload")
-def fileUpload(file: Annotated[UploadFile, File()], location: Annotated[str, Form()]):
-    print(location)
+def fileUpload(location: Annotated[str, Form()], file: Annotated[UploadFile, File()]):
+    print(location, type(location))
     with open(location, "wb") as buffer:
         buffer.write(file.file.read())
     return {"status": "success"}

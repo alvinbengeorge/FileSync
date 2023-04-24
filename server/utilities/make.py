@@ -14,13 +14,16 @@ def makeTree(path):
     return tree
 
 def makeList(tree, path):
-    l = []
+    data = []
     for i in tree:
-        if type(i) == dict:
-            l += makeList(i[list(i.keys())[0]], path+"/"+list(i.keys())[0])
+        if type(i) == str:
+            data.append(path+"/"+i)
         else:
-            l.append(path+"/"+i)
-    return l
+            data += makeList(i[list(i.keys())[0]], path+"/"+list(i.keys())[0])
+    return data
+
+def writeTime(l: list):
+    return [{"path": i, "time": int(os.path.getmtime(i))} for i in l]
 
 if __name__ == "__main__":
-    print(json.dumps(makeList(makeTree("."), "."), indent=4))
+    print(json.dumps(writeTime(makeList(makeTree("."), ".")), indent=4))

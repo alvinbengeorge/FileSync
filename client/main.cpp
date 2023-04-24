@@ -3,18 +3,11 @@
 #include<nlohmann/json.hpp>
 #include<string>
 #include<filesystem>
+#include<sys/stat.h>
 
 using json  = nlohmann::json;
 using namespace std;
 
-// function to write an array to a json
-json writeArrayToJson(int arr[], int n) {
-    json j;
-    for (int i = 0; i < n; i++) {
-        j.push_back(arr[i]);
-    }
-    return j;
-}
 
 string URL(string route) {
     string url = "http://localhost:8000/";
@@ -33,6 +26,20 @@ string sendJson(json j) {
     return r.text;
 }
 
+json writeTime(json files) {
+    json newData;
+    for (auto & i : files) {
+        json temp;
+        temp["path"] = i.get<string>();
+        // last modified time using stat
+        struct stat attr;
+        stat(i.get<string>().c_str(), &attr);
+        temp["time"] = attr.st_mtime;
+        newData.push_back(temp);
+    }
+    return newData;
+}
+
 json listDir(string path) {
     json files;
 
@@ -47,7 +54,7 @@ json listDir(string path) {
             
         }
     }
-    return files;
+    return writeTime(files);
 }
 
 void download(string location) {
@@ -56,8 +63,20 @@ void download(string location) {
     cpr::Response r = cpr::Post(cpr::Url{url},
                                 cpr::Body{data.dump()},
                                 cpr::Header{{"content-type", "application/json"}});
-    // write to a file with path location
-    
+    ofstream file(location);
+    file << r.text;
+    file.close();
+}
+
+void upload(string location) {
+    string url = URL("upload/");
+    auto parts = cpr::Multipart{{"file", cpr::File{location}}};
+    cpr::Response r = cpr::Post(cpr::Url{url},
+                                parts,
+                                cpr::Body{location},
+                                cpr::Header{{"content-type", "application/json"},
+                                });
+    cout << r.text << endl;
 }
 
 int loop() {
@@ -73,9 +92,7 @@ int main() {
     */
     json files = listDir("./syncingFolder");
     cout << files.dump() << endl;
-    string response = sendJson(files);
-    cout << json::parse(response) << endl;
-    download("./syncingFolder/Bat.jpg");
+    upload("./syncingFolder/Bat.jpg");
 
 
 }
