@@ -89,16 +89,9 @@ int loop() {
 }
 
 int main() {
-    /*
     int condition = 1;
     while (condition) {
-        condition= loop();
+        condition=loop();
     }
-    */
-    string response = sendJson(listDir("./syncingFolder"));
-    cout << json::parse(response) << endl;
-    upload("./syncingFolder/Bat.jpg");
-    download("./syncingFolder/error.png");
-
 
 }
