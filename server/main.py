@@ -1,13 +1,16 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, Form, UploadFile, File
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from utilities import make
+from typing import Annotated
 
 
 class Item(BaseModel):
     data: list
 
-class Upload(BaseModel):
-    location: str
+class Download(BaseModel):
+    path: str
+
 
 def compare(client: list, local: list) -> dict:
     upload = []
@@ -28,14 +31,19 @@ def read_root():
 
 @app.post("/items/")
 def items(item: Item): 
-    local = make.makeList(make.makeTree("."), ".")
+    local = make.makeList(make.makeTree("./syncingFolder"), "./syncingFolder")
     client = item.data
     return compare(client, local)
 
 @app.post("/upload")
-def fileUpload(file: UploadFile, location: Upload):
-    print(location.location)
+def fileUpload(file: Annotated[UploadFile, File()], location: Annotated[str, Form()]):
+    print(location)
     with open(location, "wb") as buffer:
         buffer.write(file.file.read())
-    return {"status": "OK"}
+    return {"status": "success"}
+
+@app.post("/download")
+def fileDownload(location: Download):
+    print(location)
+    return FileResponse(location.path)
 

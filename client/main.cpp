@@ -17,46 +17,65 @@ json writeArrayToJson(int arr[], int n) {
 }
 
 string URL(string route) {
-    string url = "https://localhost:8000/";
+    string url = "http://localhost:8000/";
     return url + route;
 }
 
-//function to send the json to the server
-json sendJson(json j, string folderID) {
+
+string sendJson(json j) {
     json data;
     data["data"] = j;
+    cout << data.dump() << endl;
     string url = URL("items/");
     cpr::Response r = cpr::Post(cpr::Url{url},
                                 cpr::Body{data.dump()},
-                                cpr::Header{{"content-type", "application/json"},
-                                            {"id", folderID}});
-    return json::parse(r.text);
+                                cpr::Header{{"content-type", "application/json"}});
+    return r.text;
 }
 
 json listDir(string path) {
     json files;
-    // get current working directory
-    cout << filesystem::current_path() << endl;
 
     for (const auto & entry : filesystem::directory_iterator(path)) {
         if (!filesystem::is_directory(entry.path())) {
             files.push_back(entry.path());
         } else {
             json sub = listDir(entry.path());
-            // convert json sub to array
+            for (auto & i : sub) {
+                files.push_back(i);
+            }
             
         }
     }
     return files;
 }
 
-void loop() {}
+void download(string location) {
+    string url = URL("download/");
+    json data = json{{"path", location}};
+    cpr::Response r = cpr::Post(cpr::Url{url},
+                                cpr::Body{data.dump()},
+                                cpr::Header{{"content-type", "application/json"}});
+    // write to a file with path location
+    
+}
+
+int loop() {
+    return 1;
+}
 
 int main() {
-    string path = "./syncingFolder";
-    json files = listDir(path);
-    // json j = sendJson(files, "1");
-    cout << files.dump(4) << endl;
-    return 0;
+    /*
+    int condition = 1;
+    while (condition) {
+        condition= loop();
+    }
+    */
+    json files = listDir("./syncingFolder");
+    cout << files.dump() << endl;
+    string response = sendJson(files);
+    cout << json::parse(response) << endl;
+    download("./syncingFolder/Bat.jpg");
+
 
 }
