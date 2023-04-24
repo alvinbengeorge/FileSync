@@ -4,6 +4,7 @@
 #include<string>
 #include<filesystem>
 #include<sys/stat.h>
+#include<stdio.h>
 
 using json  = nlohmann::json;
 using namespace std;
@@ -69,14 +70,17 @@ void download(string location) {
 }
 
 void upload(string location) {
-    string url = URL("upload/");
-    auto parts = cpr::Multipart{{"file", cpr::File{location}}};
-    cpr::Response r = cpr::Post(cpr::Url{url},
-                                parts,
-                                cpr::Body{location},
-                                cpr::Header{{"content-type", "application/json"},
-                                });
-    cout << r.text << endl;
+    // replacing / with * to avoid problems with the url
+    for (int i = 0; i < location.length(); i++) {
+        if (location[i] == '/') {
+            location[i] = '*';
+        }
+    }
+    
+    string url = URL("upload/")+location;
+    cout << url << location;
+    string command = "sh upload.sh "+location+" "+url;
+    system(command.c_str());
 }
 
 int loop() {
@@ -90,9 +94,10 @@ int main() {
         condition= loop();
     }
     */
-    json files = listDir("./syncingFolder");
-    cout << files.dump() << endl;
+    string response = sendJson(listDir("./syncingFolder"));
+    cout << json::parse(response) << endl;
     upload("./syncingFolder/Bat.jpg");
+    download("./syncingFolder/error.png");
 
 
 }

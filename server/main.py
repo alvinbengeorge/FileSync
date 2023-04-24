@@ -17,11 +17,13 @@ class Location(BaseModel):
 def compare(client: list, local: list) -> dict:
     upload = []
     download = []
-    for i in client:
-        if i not in local:
+    clientPaths = [i["path"] for i in client]
+    localPaths = [i["path"] for i in local]
+    for i in clientPaths:
+        if i not in localPaths:
             upload.append(i)
-    for i in local:
-        if i not in client:
+    for i in localPaths:
+        if i not in clientPaths:
             download.append(i)
     return {"upload": upload, "download": download}
 
@@ -37,9 +39,10 @@ def items(item: Item):
     client = item.data
     return compare(client, local)
 
-@app.post("/upload")
-def fileUpload(location: Annotated[str, Form()], file: Annotated[UploadFile, File()]):
-    print(location, type(location))
+@app.post("/upload/{location}")
+def fileUpload(location, file: Annotated[UploadFile, File()]):
+    print(location)
+    location = location.replace("*", "/")
     with open(location, "wb") as buffer:
         buffer.write(file.file.read())
     return {"status": "success"}
