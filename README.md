@@ -1,2 +1,2 @@
 # FileSync
-CPP project for Systems Programming
+Python rewrite for a Cloud Storage
