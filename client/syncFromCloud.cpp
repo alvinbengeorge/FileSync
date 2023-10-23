@@ -16,16 +16,16 @@ string URL(string route) {
     return url + route;
 }
 
-
-string sendJson(json j) {
-    json data;
-    data["data"] = j;
-    string url = URL("items/");
+void download(string location) {
+    cout << "Downloaded: " << location << endl;
+    string url = URL("download/");
+    json data = json{{"path", location}};
     cpr::Response r = cpr::Post(cpr::Url{url},
                                 cpr::Body{data.dump()},
                                 cpr::Header{{"content-type", "application/json"}});
-    cout << r.text << endl;
-    return r.text;
+    ofstream file(location);
+    file << r.text;
+    file.close();
 }
 
 json writeTime(json files) {
@@ -59,55 +59,22 @@ json listDir(string path) {
     return writeTime(files);
 }
 
-void download(string location) {
-    cout << "Downloaded: " << location << endl;
-    string url = URL("download/");
-    json data = json{{"path", location}};
+string sendJson(json j) {
+    json data;
+    data["data"] = j;
+    string url = URL("sync/");
     cpr::Response r = cpr::Post(cpr::Url{url},
                                 cpr::Body{data.dump()},
                                 cpr::Header{{"content-type", "application/json"}});
-    ofstream file(location);
-    file << r.text;
-    file.close();
-}
-
-void upload(string location) {
-    cout << "Uploading: " << location << endl;
-    string trueLocation = location;
-    for (int i = 0; i < location.length(); i++) {
-        if (location[i] == '/') {
-            location[i] = ',';
-        }
-    }
-    
-    string url = URL("upload/")+location;
-    string command = "sh upload.sh "+trueLocation+" "+url;
-    system(command.c_str());
-}
-
-int loop() {
-    sleep(3);
-    json files = listDir("./syncingFolder");
-    // cout << files <<endl;
-    string response = sendJson(files);
-    // cout << response << endl;
-    json data = json::parse(response);
-
-    // convert json data to array
-    for (auto & i : data["download"]) {
-        download(i.get<string>());
-    }
-    for (auto & i : data["upload"]) {
-        upload(i.get<string>());
-    }
-
-
-    return 1;
+    cout << r.text << endl;
+    return r.text;
 }
 
 int main() {
-    int condition = 1;
-    while (condition) {
-        condition=loop();
+    json files = listDir("./syncingFolder");
+    string response = sendJson(files);
+    json data = json::parse(response);
+    for (auto & i : data["download"]) {
+        download(i.get<string>());
     }
 }
